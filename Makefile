@@ -1,5 +1,5 @@
 CC=clang++.exe
-CFLAGS=-std=c++17 -O -g
+CFLAGS=-std=c++17
 
 ODIR=obj
 BDIR=bin
@@ -8,7 +8,7 @@ OBJ = shim.o
 OBJS = $(patsubst %,$(ODIR)/%,$(OBJ))
 
 all: $(OBJS) | $(BDIR)
-	$(CC) -o $(BDIR)/shim.exe $^ $(CFLAGS)
+	$(CC) -o $(BDIR)/shim.exe $^ $(CFLAGS) -O
 	sha256sum $(BDIR)/shim.exe > $(BDIR)/checksum.sha256
 	sha512sum $(BDIR)/shim.exe > $(BDIR)/checksum.sha512
 
