@@ -1,5 +1,5 @@
 CC=clang++.exe
-CFLAGS=-std=c++17
+CFLAGS=-std=c++17 -m32
 
 ODIR=obj
 BDIR=bin
