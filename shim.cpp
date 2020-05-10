@@ -109,7 +109,7 @@ std::tuple<std::wstring_p, std::wstring_p> GetShimInfo()
     return {path, args};
 }
 
-std::unique_handle MakeProcess(const std::wstring_p& path, const std::wstring_p& args)
+std::tuple<std::unique_handle, std::unique_handle> MakeProcess(const std::wstring_p& path, const std::wstring_p& args)
 {
     // Start subprocess
     STARTUPINFOW si = {};
@@ -152,7 +152,7 @@ std::unique_handle MakeProcess(const std::wstring_p& path, const std::wstring_p&
             if (!ShellExecuteExW(&sei))
             {
                 fprintf(stderr, "Unable to create elevated process: error %li.", GetLastError());
-                return processHandle;
+                return {std::move(processHandle), std::move(threadHandle)};
             }
 
             processHandle.reset(sei.hProcess);
@@ -160,7 +160,7 @@ std::unique_handle MakeProcess(const std::wstring_p& path, const std::wstring_p&
         else
         {
             fprintf(stderr, "Could not create process with command '%ls'.\n", cmd.data());
-            return processHandle;
+            return {std::move(processHandle), std::move(threadHandle)};
         }
     }
 
@@ -170,7 +170,7 @@ std::unique_handle MakeProcess(const std::wstring_p& path, const std::wstring_p&
         fprintf(stderr, "Could not set control handler; Ctrl-C behavior may be invalid.\n");
     }
 
-    return processHandle;
+    return {std::move(processHandle), std::move(threadHandle)};
 }
 
 int wmain(int argc, wchar_t* argv[])
@@ -217,7 +217,7 @@ int wmain(int argc, wchar_t* argv[])
     jeli.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE | JOB_OBJECT_LIMIT_SILENT_BREAKAWAY_OK;
     SetInformationJobObject(jobHandle.get(), JobObjectExtendedLimitInformation, &jeli, sizeof(jeli));
 
-    auto processHandle = MakeProcess(std::move(path), std::move(args));
+    auto [processHandle, threadHandle] = MakeProcess(std::move(path), std::move(args));
     if (processHandle && !isWindowsApp)
     {
         AssignProcessToJobObject(jobHandle.get(), processHandle.get());
