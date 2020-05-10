@@ -13,7 +13,7 @@ all: $(OBJS) | $(BDIR)
 	sha512sum $(BDIR)/shim.exe > $(BDIR)/checksum.sha512
 
 $(ODIR)/%.o: %.cpp | $(ODIR)
-	$(CC) -c -o $@ $< $(CFLAGS)
+	$(CC) -c -o $@ $< $(CFLAGS) -g
 
 $(ODIR):
 	mkdir -p $(ODIR)

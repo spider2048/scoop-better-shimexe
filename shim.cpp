@@ -1,3 +1,4 @@
+#include <corecrt_wstring.h>
 #pragma comment(lib, "SHELL32.LIB")
 #include <windows.h>
 #include <stdio.h>
@@ -187,10 +188,14 @@ int wmain(int argc, wchar_t* argv[])
         args.emplace();
     }
 
-    for (int i = 1; i < argc; i++)
+    auto cmd = GetCommandLineW();
+    if (cmd[0] == L'\"')
     {
-        args->append(L" ");
-        args->append(argv[i]);
+        args->append(cmd + wcslen(argv[0]) + 2);
+    }
+    else
+    {
+        args->append(cmd + wcslen(argv[0]));
     }
 
     // Find out if the target program is a console app
@@ -206,8 +211,8 @@ int wmain(int argc, wchar_t* argv[])
 
     // Create job object, which can be attached to child processes
     // to make sure they terminate when the parent terminates as well.
-    JOBOBJECT_EXTENDED_LIMIT_INFORMATION jeli = {};
     std::unique_handle jobHandle(CreateJobObject(nullptr, nullptr));
+    JOBOBJECT_EXTENDED_LIMIT_INFORMATION jeli = {};
 
     jeli.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE | JOB_OBJECT_LIMIT_SILENT_BREAKAWAY_OK;
     SetInformationJobObject(jobHandle.get(), JobObjectExtendedLimitInformation, &jeli, sizeof(jeli));
