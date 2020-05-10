@@ -1,16 +1,19 @@
 CC=clang++.exe
 CFLAGS=-std=c++17 -m32
+VER=2.1
 
-ODIR=obj
-BDIR=bin
+ODIR = obj
+BDIR = bin
+ADIR = archive
 
+TARGET = $(BDIR)/shim.exe
 OBJ = shim.o
 OBJS = $(patsubst %,$(ODIR)/%,$(OBJ))
 
-all: $(OBJS) | $(BDIR)
-	$(CC) -o $(BDIR)/shim.exe $^ $(CFLAGS) -O -static
-	sha256sum $(BDIR)/shim.exe > $(BDIR)/checksum.sha256
-	sha512sum $(BDIR)/shim.exe > $(BDIR)/checksum.sha512
+$(TARGET): $(OBJS) | $(BDIR)
+	$(CC) -o $(TARGET) $^ $(CFLAGS) -O -static
+	sha256sum $(TARGET) > $(BDIR)/checksum.sha256
+	sha512sum $(TARGET) > $(BDIR)/checksum.sha512
 
 $(ODIR)/%.o: %.cpp | $(ODIR)
 	$(CC) -c -o $@ $< $(CFLAGS) -g
@@ -21,10 +24,18 @@ $(ODIR):
 $(BDIR):
 	mkdir -p $(BDIR)
 
-.PHONY: clean debug
+.PHONY: clean debug zip
 
 clean:
 	rm -f $(ODIR)/*.*
 
 debug: $(OBJS) | $(BDIR)
 	$(CC) -o $(BDIR)/shim.exe $^ $(CFLAGS) -g
+
+$(ADIR):
+	mkdir -p $(ADIR)
+
+$(ADIR)/shim-$(VER).zip: $(TARGET) | $(ADIR)
+	cd $(ADIR) && zip -j -9 shim-$(VER).zip ../$(BDIR)/*.*
+
+zip: $(ADIR)/shim-$(VER).zip
