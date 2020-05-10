@@ -1,6 +1,6 @@
 CC=clang++.exe
 CFLAGS=-std=c++17 -m32
-VER=2.1
+VER=shimexe-2.1
 
 ODIR = obj
 BDIR = bin
@@ -35,7 +35,7 @@ debug: $(OBJS) | $(BDIR)
 $(ADIR):
 	mkdir -p $(ADIR)
 
-$(ADIR)/shim-$(VER).zip: $(TARGET) | $(ADIR)
-	cd $(ADIR) && zip -j -9 shim-$(VER).zip ../$(BDIR)/*.*
+$(ADIR)/$(VER).zip: $(TARGET) | $(ADIR)
+	cd $(ADIR) && zip -j -9 $(VER).zip ../$(BDIR)/*.*
 
-zip: $(ADIR)/shim-$(VER).zip
+zip: $(ADIR)/$(VER).zip
