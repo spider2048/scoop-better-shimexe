@@ -1,6 +1,6 @@
 CC=clang++.exe
 CFLAGS=-std=c++17 -m32
-VER=shimexe-2.1
+VER=shimexe-2.2
 
 ODIR = obj
 BDIR = bin
@@ -11,12 +11,12 @@ OBJ = shim.o
 OBJS = $(patsubst %,$(ODIR)/%,$(OBJ))
 
 $(TARGET): $(OBJS) | $(BDIR)
-	$(CC) -o $(TARGET) $^ $(CFLAGS) -O -static
+	$(CC) -o $(TARGET) $^ $(CFLAGS) -Oz -static
 	sha256sum $(TARGET) > $(BDIR)/checksum.sha256
 	sha512sum $(TARGET) > $(BDIR)/checksum.sha512
 
 $(ODIR)/%.o: %.cpp | $(ODIR)
-	$(CC) -c -o $@ $< $(CFLAGS) -g
+	$(CC) -c -o $@ $< $(CFLAGS) -Oz -g
 
 $(ODIR):
 	mkdir -p $(ODIR)
