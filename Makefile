@@ -11,12 +11,12 @@ OBJ = shim.o
 OBJS = $(patsubst %,$(ODIR)/%,$(OBJ))
 
 $(TARGET): $(OBJS) | $(BDIR)
-	$(CC) -o $(TARGET) $^ $(CFLAGS) -Oz -static
+	$(CC) -o $(TARGET) $^ $(CFLAGS) -Ofast -static
 	sha256sum $(TARGET) > $(BDIR)/checksum.sha256
 	sha512sum $(TARGET) > $(BDIR)/checksum.sha512
 
 $(ODIR)/%.o: %.cpp | $(ODIR)
-	$(CC) -c -o $@ $< $(CFLAGS) -Oz -g
+	$(CC) -c -o $@ $< $(CFLAGS) -Ofast -g
 
 $(ODIR):
 	mkdir -p $(ODIR)
