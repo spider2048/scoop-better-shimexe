@@ -95,7 +95,19 @@ std::tuple<std::wstring_p, std::wstring_p> GetShimInfo()
 
         if (line.substr(0, 4) == L"path")
         {
-            path.emplace(line.data() + 7, line.size() - 7 - (line.back() == L'\n' ? 1 : 0));
+            std::wstring_view line_substr = line.substr(7);
+            if (line_substr.find(L" ") != std::wstring_view::npos && line_substr.front() != L'"')
+            {
+                path.emplace(L"\"");
+                auto& path_value = path.value();
+                path_value.append(line_substr.data(), line_substr.size() - (line.back() == L'\n' ? 1 : 0));
+                path_value.push_back(L'"');
+            }
+            else
+            {
+                path.emplace(line_substr.data(), line_substr.size() - (line.back() == L'\n' ? 1 : 0));
+            }
+            
             continue;
         }
 
