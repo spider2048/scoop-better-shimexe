@@ -1,6 +1,8 @@
 #include <corecrt_wstdio.h>
 #pragma comment(lib, "SHELL32.LIB")
+#pragma comment(lib, "SHLWAPI.LIB")
 #include <windows.h>
+#include <shlwapi.h>
 #include <stdio.h>
 
 #include <string>
@@ -213,8 +215,19 @@ int wmain(int argc, wchar_t* argv[])
     }
 
     // Find out if the target program is a console app
+
+    wchar_t unquotedPath[MAX_PATH] = {};
+    wmemcpy(unquotedPath, path->c_str(), path->length());
+    PathUnquoteSpacesW(unquotedPath);
     SHFILEINFOW sfi = {};
-    const auto isWindowsApp = HIWORD(SHGetFileInfoW(path->c_str(), -1, &sfi, sizeof(sfi), SHGFI_EXETYPE)) != 0;
+    const auto ret = SHGetFileInfoW(unquotedPath, -1, &sfi, sizeof(sfi), SHGFI_EXETYPE);
+
+    if (ret == 0)
+    {
+        fprintf(stderr, "Could not determine if target is a GUI app. Assuming console.\n");
+    }
+
+    const auto isWindowsApp = HIWORD(ret) != 0;
 
     if (isWindowsApp)
     {
