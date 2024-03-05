@@ -13,7 +13,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: seanmiddleditch/gha-setup-ninja@master
+      - uses: msys2/setup-msys2@v2
+        with:
+          update: false
+          release: false
+          install: >-
+            ninja
 
       - name: Build
-        run: ninja -C build shim.exe
+        run: |
+          .github/scripts/setenv.ps1
+          ninja -C build shim.exe

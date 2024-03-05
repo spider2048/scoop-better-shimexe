@@ -1,11 +1,14 @@
 cc = clang++.exe
-cflags = -std=c++17 -m32
+cflags = -std=c++20 -m32
 
 rule cc
-  command = $cc -c -o $out $in $cflags -Ofast -g
+  command = $cc -c -o $out $in $cflags -O2 -g
 
 rule link
-  command = $cc -o $out $in $cflags -Ofast -static
+  command = $cc -o $out $cflags -O2 -static -Wl,/manifest:embed -Wl,/manifestinput:$in
+
+rule link-debug
+  command = $cc -o $out $cflags -O2 -static -fuse-ld=lld -g -Wl,/manifest:embed -Wl,/manifestinput:$in
 
 rule mkdir
   command = mkdir -p $in
@@ -20,7 +23,8 @@ rule zip
   command = zip -j -9 $out $in
 
 build shim.o: cc ../shim.cpp
-build shim.exe: link shim.o
+build shim.exe: link ../shim.manifest shim.o
+build shimd.exe: link-debug ../shim.manifest shim.o
 build checksum.sha256: sha256sum shim.exe
 build checksum.sha512: sha512sum shim.exe
 build shimexe.zip: zip shim.exe checksum.sha256 checksum.sha512

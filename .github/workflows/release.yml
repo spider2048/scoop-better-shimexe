@@ -46,6 +46,12 @@ jobs:
           echo "version=$version" >> $GITHUB_ENV
           echo "prerelease=$prerelease" >> $GITHUB_ENV
 
+      - name: Setup environment
+        shell: pwsh
+        run: |
+          .github/scripts/setenv.ps1
+          echo $env:PATH | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
       - name: Build
         run: ninja -C build
 
