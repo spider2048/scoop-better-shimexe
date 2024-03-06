@@ -16,6 +16,8 @@
 #define ERROR_ELEVATION_REQUIRED 740
 #endif
 
+using namespace std::string_view_literals;
+
 BOOL WINAPI CtrlHandler(DWORD ctrlType)
 {
     switch (ctrlType)
@@ -52,7 +54,31 @@ namespace std
     typedef optional<wstring> wstring_p;
 }
 
-std::tuple<std::wstring_p, std::wstring_p> GetShimInfo()
+struct ShimInfo
+{
+    std::wstring_p path;
+    std::wstring_p args;
+};
+
+std::wstring_view GetDirectory(std::wstring_view exe)
+{
+    auto pos = exe.find_last_of(L"\\/");
+    return exe.substr(0, pos);
+}
+
+std::wstring_p NormalizeArgs(std::wstring_p& args, std::wstring_view curDir)
+{
+    static constexpr auto s_dirPlaceHolder = L"%~dp0"sv;
+    if (!args)
+    {
+        return args;
+    }
+
+    args->replace(args->find(s_dirPlaceHolder), s_dirPlaceHolder.size(), curDir.data(), curDir.size());
+    return args;
+}
+
+ShimInfo GetShimInfo()
 {
     // Find filename of current executable.
     wchar_t filename[MAX_PATH + 2];
@@ -109,7 +135,7 @@ std::tuple<std::wstring_p, std::wstring_p> GetShimInfo()
             {
                 path.emplace(line_substr.data(), line_substr.size() - (line.back() == L'\n' ? 1 : 0));
             }
-            
+
             continue;
         }
 
@@ -120,15 +146,16 @@ std::tuple<std::wstring_p, std::wstring_p> GetShimInfo()
         }
     }
 
-    return {path, args};
+    return {path, NormalizeArgs(args, GetDirectory(filename))};
 }
 
-std::tuple<std::unique_handle, std::unique_handle> MakeProcess(const std::wstring_p& path, const std::wstring_p& args)
+std::tuple<std::unique_handle, std::unique_handle> MakeProcess(ShimInfo const& info)
 {
     // Start subprocess
     STARTUPINFOW si = {};
     PROCESS_INFORMATION pi = {};
 
+    auto&& [path, args] = info;
     std::vector<wchar_t> cmd(path->size() + args->size() + 2);
     wmemcpy(cmd.data(), path->c_str(), path->size());
     cmd[path->size()] = L' ';
@@ -244,7 +271,7 @@ int wmain(int argc, wchar_t* argv[])
     jeli.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE | JOB_OBJECT_LIMIT_SILENT_BREAKAWAY_OK;
     SetInformationJobObject(jobHandle.get(), JobObjectExtendedLimitInformation, &jeli, sizeof(jeli));
 
-    auto [processHandle, threadHandle] = MakeProcess(std::move(path), std::move(args));
+    auto [processHandle, threadHandle] = MakeProcess({path, args});
     if (processHandle && !isWindowsApp)
     {
         AssignProcessToJobObject(jobHandle.get(), processHandle.get());
