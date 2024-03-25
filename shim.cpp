@@ -74,7 +74,12 @@ std::wstring_p NormalizeArgs(std::wstring_p& args, std::wstring_view curDir)
         return args;
     }
 
-    args->replace(args->find(s_dirPlaceHolder), s_dirPlaceHolder.size(), curDir.data(), curDir.size());
+    auto pos = args->find(s_dirPlaceHolder);
+    if (pos != std::wstring::npos)
+    {
+        args->replace(pos, s_dirPlaceHolder.size(), curDir.data(), curDir.size());
+    }
+
     return args;
 }
 
