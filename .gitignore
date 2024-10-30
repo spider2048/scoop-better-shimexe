@@ -10,3 +10,7 @@ bin/
 archive/
 build/**
 !build/*.ninja
+!build/build.ps1
+!build/build.zig
+.zig-cache/
+zig-out/
