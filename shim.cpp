@@ -283,6 +283,10 @@ int wmain(int argc, wchar_t* argv[])
     {
         AssignProcessToJobObject(jobHandle.get(), processHandle.get());
 
+        if (!GetConsoleWindow()) {
+            AttachConsole(ATTACH_PARENT_PROCESS);
+        }
+
         // Wait till end of process
         WaitForSingleObject(processHandle.get(), INFINITE);
 
