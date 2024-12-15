@@ -1,24 +1,19 @@
-CC=clang++.exe
-CFLAGS=-std=c++17 -m32
-
 ODIR = obj
 BDIR = bin
 ADIR = archive
+MESON = meson
+BUILD_DIR = builddir
 
 TARGET = $(BDIR)/shim.exe
-OBJ = shim.o
-OBJS = $(patsubst %,$(ODIR)/%,$(OBJ))
+SOURCE = shim.cpp
 
-$(TARGET): $(OBJS) | $(BDIR)
-	$(CC) -o $(TARGET) $^ $(CFLAGS) -Ofast -static
+$(TARGET): $(SOURCE) | $(BDIR)
+	$(MESON) setup $(BUILD_DIR) --buildtype=release
+	$(MESON) compile -C $(BUILD_DIR)
+	mv $(BUILD_DIR)/shim.exe $(TARGET)
+
 	sha256sum $(TARGET) > $(BDIR)/checksum.sha256
 	sha512sum $(TARGET) > $(BDIR)/checksum.sha512
-
-$(ODIR)/%.o: %.cpp | $(ODIR)
-	$(CC) -c -o $@ $< $(CFLAGS) -Ofast -g
-
-$(ODIR):
-	mkdir -p $(ODIR)
 
 $(BDIR):
 	mkdir -p $(BDIR)
@@ -28,9 +23,10 @@ $(BDIR):
 clean:
 	rm -f $(ODIR)/*.*
 	rm -f $(BDIR)/*.*
+	rm -fr $(BUILD_DIR)
 
-debug: $(OBJS) | $(BDIR)
-	$(CC) -o $(BDIR)/shim.exe $^ $(CFLAGS) -g
+debug: $(SOURCE) | $(BDIR)
+	$(MESON) setup $(BUILD_DIR)
 
 $(ADIR):
 	mkdir -p $(ADIR)
